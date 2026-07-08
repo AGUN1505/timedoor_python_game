@@ -25,8 +25,12 @@ player = player_walk[player_index]
 player_jump = pygame.image.load("gallery/sprites/player/Player3.png").convert_alpha()
 player_rect = player.get_rect(midbottom = (80, 320))
 player_gravity = 0
+score = 0
+high_score = 0
 
 jump_sound = pygame.mixer.Sound("gallery/audio/jump.mp3")
+
+game_over_sound = pygame.mixer.Sound("gallery/audio/death.mp3")
 
 back_sound = pygame.mixer.Sound('gallery/audio/backsound.mp3')
 back_sound.play(loops=-1)
@@ -78,6 +82,17 @@ def obstacle_movement(obstacle_list):
         return obstacle_list
     else:
         return []   #jika tidak ada musuh, kembalikan list kosong
+    
+def collision(player, obstacles):
+    global high_score
+    if obstacles:   #Jika ada obstacle
+        for obstacle_rect in obstacles:   #Cek satu per satu obstacle
+            if player.colliderect(obstacle_rect):   #Jika player menyentuh obstacle
+                game_over_sound.play()
+                if score > high_score:
+                    high_score = score
+                return False   #Artinya tabrakan terjadi, permainan berhenti
+    return True   #Jika tidak ada tabrakan, permainan lanjut
 
 def spawn_enemy():
     global enemy_frame_index, enemy2_frame_index, enemy, enemy2
@@ -112,7 +127,8 @@ def player_animation():
         player = player_walk[int(player_index)]
     
 def active_game():
-    global player_gravity, obstacle_rect_list
+    global score
+    global player_gravity, obstacle_rect_list, game_active
     window_screen.blit(skybox, (0,0))    #Tampilkan background
     window_screen.blit(ground, (0, 320))    #Tampilkan tanah/ground
     score = display_score()
@@ -123,9 +139,12 @@ def active_game():
     player_animation()   #Jalankan animasi pemain
     window_screen.blit(player, player_rect)   #Tampilkan pemain di layar
     obstacle_rect_list = obstacle_movement(obstacle_rect_list)
+    game_active = collision(player_rect, obstacle_rect_list)
 
 def inactive_game():
+    global score, high_score
     player_animation()
+    obstacle_rect_list.clear()
     window_screen.fill((64,64,64))  #Set background color to gray
     
     game_name = font.render("Runner Game", False, "white")
@@ -133,8 +152,16 @@ def inactive_game():
     game_name_rect = game_name.get_rect(center = (400, 80))
     game_message = font.render("Press Space to start", False, "white")
     game_message_rect = game_message.get_rect(center = (400, 300))
+    score_message = font.render("Your score : {}".format(score), False, "white")
+    score_message_rect = score_message.get_rect(center = (400, 320))
+    high_score_message = font.render("Your high score : {}". format(high_score), False, "white")
+    high_score_message_rect = high_score_message.get_rect(center = (400, 350))
     window_screen.blit(game_name, game_name_rect)
-    window_screen.blit(game_message, game_message_rect)
+    if score == 0:
+        window_screen.blit(game_message, game_message_rect)
+    else:
+        window_screen.blit(score_message, score_message_rect)
+        window_screen.blit(high_score_message, high_score_message_rect)
     
     window_screen.blit(player, (frame_size_x // 2 - 30 , frame_size_y//2 - 30 ))  #Display player in the center
     
