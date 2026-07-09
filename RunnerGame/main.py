@@ -92,7 +92,7 @@ def collision(player, obstacles):
                 if score > high_score:
                     high_score = score
                 return False   #Artinya tabrakan terjadi, permainan berhenti
-    return True   #Jika tidak ada tabrakan, permainan lanjut
+    return True   
 
 def spawn_enemy():
     global enemy_frame_index, enemy2_frame_index, enemy, enemy2
